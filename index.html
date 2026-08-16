@@ -47,7 +47,7 @@
         }
 
         h1 { margin-top: 0; color: var(--primary); font-size: 28px; }
-        h2 { font-size: 24px; }
+        h2 { font-size: 24px; margin-bottom: 10px;}
 
         button {
             background-color: var(--primary);
@@ -72,12 +72,68 @@
         .btn-reto { background-color: #FF5722; }
         .btn-volver { background-color: var(--secondary); font-size: 16px; margin-top: 25px; }
 
+        /* Estilos del sistema de jugadores */
+        .form-jugador {
+            display: flex;
+            width: 100%;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .form-jugador input {
+            flex-grow: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-size: 16px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .btn-agregar {
+            width: auto;
+            margin: 0;
+            padding: 12px 20px;
+            border-radius: 10px;
+        }
+
+        .jugadores-lista {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            width: 100%;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .jugador-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--secondary);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .btn-eliminar {
+            background-color: transparent;
+            color: #ff4d4d;
+            border: none;
+            width: auto;
+            margin: 0;
+            padding: 5px;
+            font-size: 18px;
+        }
+
         .niveles-container {
             display: flex;
             flex-direction: column;
             width: 100%;
             gap: 10px;
-            margin: 20px 0;
+            margin: 10px 0 20px 0;
         }
 
         .niveles-container label {
@@ -86,7 +142,7 @@
             display: flex;
             align-items: center;
             background-color: var(--secondary);
-            padding: 15px;
+            padding: 12px;
             border-radius: 12px;
             transition: background-color 0.2s;
         }
@@ -119,11 +175,15 @@
 
         #resultado-texto {
             font-size: 22px;
-            font-weight: bold;
             margin: 20px 0;
             min-height: 100px;
             display: none;
             line-height: 1.4;
+        }
+        
+        #resultado-texto b {
+            color: var(--primary);
+            font-size: 24px;
         }
     </style>
 </head>
@@ -132,8 +192,15 @@
     <!-- PANTALLA 1: INICIO Y NIVELES -->
     <div id="pantalla-inicio" class="screen active">
         <h1>Verdad o Reto</h1>
-        <p style="font-size: 15px; margin-bottom: 5px;">Elegí los niveles para mezclar:</p>
         
+        <p style="font-size: 15px; margin-bottom: 5px;">Agregá a los que van a jugar:</p>
+        <div class="form-jugador">
+            <input type="text" id="nuevo-jugador" placeholder="Nombre" onkeypress="if(event.key==='Enter') agregarJugador()">
+            <button class="btn-agregar" onclick="agregarJugador()">➕</button>
+        </div>
+        <ul id="lista-jugadores" class="jugadores-lista"></ul>
+
+        <p style="font-size: 15px; margin-bottom: 5px; margin-top: 5px;">Elegí los niveles para mezclar:</p>
         <div class="niveles-container">
             <label><input type="checkbox" value="1" class="nivel-cb" checked> 🟢 Nivel 1 </label>
             <label><input type="checkbox" value="2" class="nivel-cb"> 🟡 Nivel 2 </label>
@@ -145,11 +212,11 @@
 
     <!-- PANTALLA 2: ELECCIÓN -->
     <div id="pantalla-eleccion" class="screen">
-        <h1>Tu turno</h1>
+        <h1 id="nombre-turno">Turno de: </h1>
         <p style="margin-bottom: 25px;">¿Qué vas a elegir?</p>
         <button class="btn-verdad" onclick="jugar('verdad')">Verdad</button>
         <button class="btn-reto" onclick="jugar('reto')">Reto</button>
-        <button class="btn-volver" onclick="volverAlInicio()">⚙️ Cambiar Niveles</button>
+        <button class="btn-volver" onclick="volverAlInicio()">⚙️ Cambiar Ajustes</button>
     </div>
 
     <!-- PANTALLA 3: RULETA Y RESULTADO -->
@@ -166,12 +233,13 @@
     </div>
 
     <script>
+        // FIJATE QUE CAMBIÉ TUS "PERSONAS RANDOM" POR LA ETIQUETA [JUGADOR]
         const verdades = {
             1: [
                 "Contate algo vergonzoso, algun secretito o situacion rara",
                 "Alguna vez mentiste sobre algo para caerle bien a alguien o hacer levante? Explayate",
                 "Qué es lo más ridículo que hiciste cuando estabas borracho y después te arrepentiste?",
-                "Contate algo vergonzoso DE ALGUIEN MAS, sisi, quemalo tranqui es tu momento",
+                "Contate algo vergonzoso [JUGADOR], sisi, quemalo tranqui es tu momento",
                 "Anécdota incomoda en la calle o afuera de tu casa",
                 "Cual fue el peor lugar donde cagaste? Se gráfico",
                 "Que costumbre tuya pensas que es una mierda?",
@@ -181,14 +249,14 @@
             ],
             2: [
                 "Cuál es la cosa más sucia que te excitó y te da vergüenza admitir?",
-                "Deci algo que no te guste o te caiga mal de una persona random, saca los trapos viejos",
+                "Deci algo que no te guste o te caiga mal de [JUGADOR], saca los trapos viejos",
                 "Quién de este grupo te genera más curiosidad sexual? Explicate",
                 "Cuál fue la situación más comprometedora en la que te descubrieron o casi te descubren?",
                 "Cuál es tu mayor inseguridad cuando estás desnudo/a con otra persona?",
                 "Fantasia sexual, sorprendenos",
                 "Conta algo realmente incomodo y/o personal",
-                "Elegi a dos personas que te parezcan que hacen una buena pareja, explayate, ponelos incomodos jeje",
-                "Elegi 3 personas para hacer una orgia (excluyendo a Teo, ya sabemos que esta invitado)"
+                "Explicá por qué [JUGADOR] y [JUGADOR] harían una buena pareja, ponelos incomodos jeje",
+                "Armá una orgía con 3 personas mas del grupo (excluyendo a Teo, ya sabemos que esta invitado)"
             ],
             3: [
                 "Describí con detalle la paja más rara o intensa que te diste en tu vida",
@@ -199,20 +267,20 @@
                 "Conta alguna paja que te hayas hecho afuera de tu casa",
                 "Te cogerías a alguien de este grupo sin pensarlo dos veces si hoy estuvieras soltero/a y sin consecuencias? (No tenes que dar nombres)",
                 "Explica con detalle como te gusta pajearte/que te pajeen",
-                "Elegi a una persona random, acosalo sexualmente (con palabras), tenes que ponerlo/a MUY incomodo/a. Si alguno no quiere, ambos toman",
+                "Acosá sexualmente (con palabras) a [JUGADOR], tenes que ponerlo/a MUY incomodo/a. Si alguno no quiere, ambos toman",
                 "Conta algo MUY asqueroso tuyo",
             ]
         };
 
         const retos = {
             1: [
-                "Dejá que la persona a tu derecha elija una canción y canta el estribillo lo mejor que puedas",
+                "Dejá que la [JUGADOR] elija una canción y canta el estribillo lo mejor que puedas",
                 "Imitá a alguien del grupo durante 15 segundos (sin decir quién es, si nadie adivina tomás)",
-                "El jugador de la derecha elige un chat tuyo de IG, lee los ultimos 15 mensajes en voz alta (sin contar reels)",
+                "[JUGADOR] elige un chat tuyo de IG, lee los ultimos 15 mensajes en voz alta (sin contar reels)",
                 "Dejá que el grupo vote cuál es tu peor hábito y no te defiendas (Denle duro)",
                 "Dejá que alguien del grupo abra tu galería y elija una foto para mostrarnos",
-                "Elegi 2 personas, tienen 5 segundos para decir en voz alta una palabra, si es la misma tomás, sino toman ellos",
-                "Concurso de flexiones/abdominales/dominadas con persona random, el perdedor toma",
+                "[JUGADOR] y [JUGADOR] tienen 5 segundos para decir en voz alta una palabra, si es la misma tomás, sino toman ellos",
+                "Concurso de flexiones/abdominales/dominadas con [JUGADOR], el perdedor toma",
                 "El grupo elije una palabra que no podes decir por el resto del juego, si la decis tomás",
                 "CHANCHO",
                 "Tomás, por boludo",
@@ -220,34 +288,62 @@
             ],
             2: [
                 "El grupo decide que prenda de ropa te tenes que sacar, te jodes hasta que terminemos de jugar",
-                "Elegí a alguien del grupo al azar y besalo/a en la mejilla lo más cerca posible de la boca, despacio",
+                "Dale un beso en la mejilla a [JUGADOR] lo más cerca posible de la boca, despacio",
                 "Dejá que el grupo elija una foto tuya de la galería y la describan en voz alta como si fuera una crítica",
-                "Elegí a dos personas random y hacé que una le dé de beber a la otra sin usar las manos, sino, toman los tres",
-                "Contá en voz alta tu número de personas con las que cogiste y el grupo tiene que adivinar si estás mintiendo o no (si adivinan, tomás)",
-                "Dejá que alguien te venda los ojos y te dé de tomar o de comer algo que elijan ellos (no sean asquerosos)",
+                "Hacé que [JUGADOR] le dé de beber a [JUGADOR] sin usar las manos, sino, toman los tres",
+                "Dejá que [JUGADOR] te venda los ojos y te dé de tomar o de comer algo que elijan ellos (no sean asquerosos)",
                 "El grupo elige una parte de tu cuerpo y tenés que dejar que te la toquen o te la miren de cerca durante 10 segundos",
-                "Una persona random tiene que tomar un shot desde tu clavicula, si no quiere, toman los dos",
-                "Llego el mounstro de las cosquillas (jugador random), aguantate la tortura o toma",
-                "Se te antoja un sanguche de pie de un jugador random, dale una buena chupada",
-                "mmm axilas, queres oler axilas, a jugador random se le ven apetitosas"
+                "[JUGADOR] tiene que tomar un shot desde tu clavicula, si no quiere, toman los dos",
+                "Llego el mounstro de las cosquillas: [JUGADOR]. Aguantate la tortura o toma",
+                "Se te antoja un sanguche de pie de [JUGADOR], dale una buena chupada",
+                "mmm axilas, queres oler axilas. Las de [JUGADOR] se ven apetitosas, andá a olerlas",
+                "Estas en frente del amor de tu vida, bebotea y mostra tus mejores cualidades. Hacete el sexy sino no cuenta"
             ],
             3: [
-                "Elegí a alguien random y hagan un apreton de lenguas (si no quieren, toman los dos)",
+                "Hacé un apreton de lenguas con [JUGADOR] (si no quieren, toman los dos)",
                 "Imitá durante 10 segundos cómo sería tu cara y sonido si estuvieras a punto de venirte (efectivamente, vas a tener que tomar)",
-                "Dejá que alguien random te dé un chupón en alguna parte del cuerpo (vos elegís el lugar, pero tiene que quedar al menos un poco marcado)",
+                "Dejá que [JUGADOR] te dé un chupón en alguna parte del cuerpo (vos elegís el lugar, pero tiene que quedar al menos un poco marcado)",
                 "Chau dos prendas de ropa, te jodes hasta que terminemos de jugar",
-                "Dejá que alguien random te bese el cuello o la clavícula durante 10 segundos mientras el resto mira, sino ambos toman",
-                "BESO TRIPLE (si alguno se niega, toman los tres)",
+                "Dejá que [JUGADOR] te bese el cuello o la clavícula durante 10 segundos mientras el resto mira, sino ambos toman",
+                "BESO TRIPLE ENTRE VOS, [JUGADOR] Y [JUGADOR] (si alguno se niega, toman los tres)",
                 "Sacate una prenda de abajo y quedate en ropa interior hasta que termine la vuelta",
-                "Elegí a alguien random y sentate en su regazo de frente, mirándolo a los ojos, durante 15 segundos sin hablar (Se tienen que tocar las frentes)",
-                "Dejá que una persona random te meta la mano debajo de la remera y te toque la espalda o el pecho por 10 segundos. Te tiene que manosear sobroso",
-                "Hace de chapar con alguien random, zarpense o sino toman",
-                "Elegi a una persona random y tienen que bailar un cuarteto bien pegaditos, te la tenes que levantar a cualquier costa",
-                "Estas en frente del amor de tu vida, sacate alguna prenda y bebotea. Hacete el sexy sino no cuenta"
+                "Sentate en el regazo de [JUGADOR] de frente, mirándolo a los ojos, durante 15 segundos sin hablar (Se tienen que tocar las frentes)",
+                "Dejá que [JUGADOR] te meta la mano debajo de la remera y te toque la espalda o el pecho por 10 segundos. Te tiene que manosear sabroso",
+                "Hace de chapar con [JUGADOR], zarpense o sino toman",
+                "Tenés que bailar un cuarteto bien pegadito con [JUGADOR], te la tenes que levantar a cualquier costa"
             ]
         };
 
         let nivelesSeleccionados = [];
+        let jugadores = [];
+        let turnoActual = 0;
+
+        function agregarJugador() {
+            const input = document.getElementById('nuevo-jugador');
+            const nombre = input.value.trim();
+            if (nombre) {
+                jugadores.push(nombre);
+                input.value = '';
+                actualizarListaJugadores();
+            }
+        }
+
+        function actualizarListaJugadores() {
+            const lista = document.getElementById('lista-jugadores');
+            lista.innerHTML = '';
+            jugadores.forEach((jugador, index) => {
+                lista.innerHTML += `
+                    <li class="jugador-item">
+                        ${jugador} 
+                        <button class="btn-eliminar" onclick="eliminarJugador(${index})">✖</button>
+                    </li>`;
+            });
+        }
+
+        function eliminarJugador(index) {
+            jugadores.splice(index, 1);
+            actualizarListaJugadores();
+        }
 
         function cambiarPantalla(idPantalla) {
             document.querySelectorAll('.screen').forEach(screen => {
@@ -256,14 +352,39 @@
             document.getElementById(idPantalla).classList.add('active');
         }
 
+        function prepararTurno() {
+            document.getElementById('nombre-turno').innerText = `Turno de: ${jugadores[turnoActual]}`;
+        }
+
         function iniciarJuego() {
             nivelesSeleccionados = Array.from(document.querySelectorAll('.nivel-cb:checked')).map(cb => parseInt(cb.value));
             
+            if (jugadores.length < 2) {
+                alert("¡Agregá por lo menos a 2 jugadores para arrancar!");
+                return;
+            }
             if (nivelesSeleccionados.length === 0) {
                 alert("¡Tenés que elegir al menos un nivel para jugar!");
                 return;
             }
+            
+            turnoActual = 0;
+            prepararTurno();
             cambiarPantalla('pantalla-eleccion');
+        }
+
+        function procesarTextoConNombres(texto) {
+            let otrosJugadores = jugadores.filter((_, i) => i !== turnoActual);
+            otrosJugadores = otrosJugadores.sort(() => 0.5 - Math.random());
+            
+            let resultado = texto.replace(/\[JUGADOR\]/g, () => {
+                if (otrosJugadores.length > 0) {
+                    return `<b>${otrosJugadores.pop()}</b>`;
+                } else {
+                    return "<b>Alguien</b>";
+                }
+            });
+            return resultado;
         }
 
         function jugar(tipo) {
@@ -285,19 +406,22 @@
             nivelesSeleccionados.forEach(nivel => {
                 opcionesDisponibles = opcionesDisponibles.concat(baseDeDatos[nivel]);
             });
-
             const fraseElegida = opcionesDisponibles[Math.floor(Math.random() * opcionesDisponibles.length)];
+            
+            const fraseLista = procesarTextoConNombres(fraseElegida);
 
             setTimeout(() => {
                 ruleta.style.display = 'none'; 
                 titulo.innerText = tipo === 'verdad' ? "¡VERDAD!" : "¡RETO!";
-                texto.innerText = fraseElegida; 
+                texto.innerHTML = fraseLista; 
                 texto.style.display = 'block';
                 btnSiguiente.style.display = 'block'; 
-            }, 1000);
+            }, 1000); 
         }
 
         function siguienteTurno() {
+            turnoActual = (turnoActual + 1) % jugadores.length;
+            prepararTurno();
             cambiarPantalla('pantalla-eleccion');
         }
 
